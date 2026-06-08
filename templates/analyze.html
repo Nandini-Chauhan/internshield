@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Analyse — InternShield</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=IBM+Plex+Mono:wght@400;600&family=Inter:wght@400;500&family=Bebas+Neue&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+html{height:auto;}
+:root{--black:#0E0E0E;--white:#F7F6F2;--red:#C8102E;--green:#0A6E3F;--border:#D4D2CC;}
+body{background:var(--white);color:var(--black);font-family:'Inter',sans-serif;overflow-x:hidden;}
+nav{display:flex;align-items:center;justify-content:space-between;padding:1.2rem 3rem;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--white);z-index:100;}
+.nav-logo{font-family:'IBM Plex Mono',monospace;font-size:0.9rem;font-weight:600;letter-spacing:1px;text-decoration:none;color:var(--black);}
+.nav-back{font-family:'IBM Plex Mono',monospace;font-size:0.65rem;color:#888;letter-spacing:2px;text-transform:uppercase;background:none;border:none;cursor:pointer;transition:color 0.2s;padding:0;}
+.nav-back:hover{color:var(--black);}
+.page{max-width:900px;margin:0 auto;padding:5rem 3rem 5rem;}
+.page-eyebrow{font-family:'IBM Plex Mono',monospace;font-size:0.65rem;color:#888;letter-spacing:3px;text-transform:uppercase;margin-bottom:1.5rem;display:flex;align-items:center;gap:0.8rem;}
+.page-eyebrow::before{content:'';display:inline-block;width:2rem;height:1px;background:#888;}
+.page-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(5rem,12vw,10rem);line-height:0.9;letter-spacing:2px;margin-bottom:0.5rem;color:var(--black);}
+.page-title span{color:var(--red);}
+.page-sub{font-family:'Playfair Display',serif;font-style:italic;font-size:1.3rem;color:#666;margin-bottom:4rem;}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem 3rem;}
+.form-group{margin-bottom:0;}
+.form-group.full{grid-column:1/-1;}
+label{display:block;font-family:'IBM Plex Mono',monospace;font-size:0.62rem;color:#999;letter-spacing:2.5px;text-transform:uppercase;margin-bottom:0.45rem;}
+input,textarea{width:100%;background:#fff;border:1px solid var(--border);border-radius:3px;font-family:'Inter',sans-serif;font-size:0.9rem;color:var(--black);padding:0.75rem 0.9rem;outline:none;resize:vertical;transition:border-color 0.2s;}
+input:focus,textarea:focus{border-color:var(--black);}
+.check-btn{width:100%;margin-top:2.5rem;background:var(--black);color:var(--white);border:none;border-radius:3px;font-family:'Bebas Neue',sans-serif;font-size:2rem;letter-spacing:4px;padding:1.2rem;cursor:pointer;transition:opacity 0.2s,transform 0.1s;}
+.check-btn:hover{opacity:0.85;}
+.check-btn:active{transform:scale(0.99);}
+.check-btn.scanning{opacity:0.4;cursor:not-allowed;}
+.error{font-family:'IBM Plex Mono',monospace;font-size:0.72rem;color:var(--red);margin-top:0.8rem;display:none;}
+.result-overlay{position:fixed;inset:0;z-index:999;display:flex;flex-direction:column;opacity:0;pointer-events:none;transition:opacity 0.6s ease;visibility:hidden;}
+.result-overlay.show{opacity:1;pointer-events:all;visibility:visible;}
+.result-overlay.fake{background:var(--red);}
+.result-overlay.real{background:#0A6E3F;}
+.overlay-nav{display:flex;align-items:center;justify-content:space-between;padding:1.2rem 3rem;border-bottom:1px solid rgba(255,255,255,0.2);}
+.overlay-logo{font-family:'IBM Plex Mono',monospace;font-size:0.9rem;font-weight:600;letter-spacing:1px;color:#fff;}
+.overlay-close{font-family:'IBM Plex Mono',monospace;font-size:0.65rem;color:rgba(255,255,255,0.6);letter-spacing:2px;text-transform:uppercase;background:none;border:none;cursor:pointer;transition:color 0.2s;}
+.overlay-close:hover{color:#fff;}
+.overlay-body{flex:1;display:flex;flex-direction:column;justify-content:center;padding:3rem;max-width:900px;margin:0 auto;width:100%;}
+.overlay-score{font-family:'Bebas Neue',sans-serif;font-size:clamp(8rem,20vw,18rem);line-height:0.85;color:#fff;opacity:0;transform:translateY(40px);transition:opacity 0.5s 0.2s ease,transform 0.5s 0.2s ease;}
+.result-overlay.show .overlay-score{opacity:1;transform:translateY(0);}
+.overlay-verdict{font-family:'Playfair Display',serif;font-style:italic;font-size:clamp(1.5rem,3vw,2.5rem);color:rgba(255,255,255,0.85);margin-top:0.5rem;opacity:0;transform:translateY(20px);transition:opacity 0.5s 0.35s ease,transform 0.5s 0.35s ease;}
+.result-overlay.show .overlay-verdict{opacity:1;transform:translateY(0);}
+.overlay-divider{width:100%;height:1px;background:rgba(255,255,255,0.2);margin:2rem 0;opacity:0;transition:opacity 0.5s 0.45s ease;}
+.result-overlay.show .overlay-divider{opacity:1;}
+.overlay-bottom{display:flex;justify-content:space-between;align-items:flex-end;opacity:0;transform:translateY(10px);transition:opacity 0.5s 0.5s ease,transform 0.5s 0.5s ease;}
+.result-overlay.show .overlay-bottom{opacity:1;transform:translateY(0);}
+.overlay-flags-label{font-family:'IBM Plex Mono',monospace;font-size:0.62rem;color:rgba(255,255,255,0.5);letter-spacing:2.5px;text-transform:uppercase;margin-bottom:0.6rem;}
+.flags-wrap{display:flex;flex-wrap:wrap;gap:0.4rem;}
+.flag-pill{background:rgba(255,255,255,0.15);color:#fff;border:1px solid rgba(255,255,255,0.25);border-radius:2px;font-family:'IBM Plex Mono',monospace;font-size:0.68rem;padding:0.25rem 0.6rem;}
+.clean-pill{background:rgba(255,255,255,0.15);color:#fff;border:1px solid rgba(255,255,255,0.25);border-radius:2px;font-family:'IBM Plex Mono',monospace;font-size:0.68rem;padding:0.25rem 0.6rem;}
+.overlay-recheck{font-family:'IBM Plex Mono',monospace;font-size:0.72rem;color:rgba(255,255,255,0.6);letter-spacing:2px;text-transform:uppercase;background:none;border:1px solid rgba(255,255,255,0.3);border-radius:3px;padding:0.7rem 1.5rem;cursor:pointer;transition:all 0.2s;white-space:nowrap;}
+.overlay-recheck:hover{background:rgba(255,255,255,0.1);color:#fff;}
+@media(max-width:768px){
+  nav{padding:1rem 1.5rem;}
+  .page{padding:3rem 1.5rem 2rem;}
+  .form-grid{grid-template-columns:1fr;}
+  .form-group.full{grid-column:1;}
+  .overlay-nav{padding:1rem 1.5rem;}
+  .overlay-body{padding:2rem 1.5rem;}
+  .overlay-bottom{flex-direction:column;gap:1.5rem;align-items:flex-start;}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="nav-logo">INTERNSHIELD</span>
+  <button class="nav-back" onclick="playAndGo('/home')">← Back to Home</button>
+</nav>
+
+<div class="page">
+  <div class="page-eyebrow">Fraud Detection Engine</div>
+  <h1 class="page-title">IS IT<br><span>REAL?</span></h1>
+  <p class="page-sub">Paste the internship details below and find out in seconds.</p>
+  <div class="form-grid">
+    <div class="form-group">
+      <label>Job Title</label>
+      <input type="text" id="title" placeholder="e.g. Software Development Intern">
+    </div>
+    <div class="form-group">
+      <label>Company Profile</label>
+      <textarea id="company" rows="3" placeholder="Paste the company description..."></textarea>
+    </div>
+    <div class="form-group full">
+      <label>Job Description</label>
+      <textarea id="description" rows="5" placeholder="Paste the full job description here..."></textarea>
+    </div>
+    <div class="form-group full">
+      <label>Requirements</label>
+      <textarea id="requirements" rows="3" placeholder="Paste the requirements..."></textarea>
+    </div>
+  </div>
+  <p class="error" id="error-msg">Please fill in all required fields.</p>
+  <button class="check-btn" id="check-btn" onclick="runCheck()">CHECK</button>
+</div>
+
+<div class="result-overlay" id="result-overlay">
+  <div class="overlay-nav">
+    <div class="overlay-logo">INTERNSHIELD</div>
+    <button class="overlay-close" onclick="closeResult()">✕ &nbsp;Check Another</button>
+  </div>
+  <div class="overlay-body">
+    <div class="overlay-score" id="overlay-score">—</div>
+    <div class="overlay-verdict" id="overlay-verdict">—</div>
+    <div class="overlay-divider"></div>
+    <div class="overlay-bottom">
+      <div class="overlay-flags">
+        <div class="overlay-flags-label">Signals Detected</div>
+        <div class="flags-wrap" id="overlay-flags"></div>
+      </div>
+      <button class="overlay-recheck" onclick="closeResult()">← Check Another</button>
+    </div>
+  </div>
+</div>
+
+<audio id="click-sound" src="/static/computer-mouse-click-joshua-chivers-1-00-00.mp3" preload="auto"></audio>
+
+<script>
+const clickSound = document.getElementById('click-sound');
+
+document.addEventListener('mousemove', function unlock(){
+  clickSound.play().then(()=>{
+    clickSound.pause();
+    clickSound.currentTime=0;
+  }).catch(()=>{});
+  document.removeEventListener('mousemove', unlock);
+},{once:true});
+
+document.addEventListener('click',(e)=>{
+  const isClickable=e.target.tagName.toLowerCase()==='button'||e.target.tagName.toLowerCase()==='a'||e.target.closest('button')||e.target.closest('a');
+  if(isClickable){
+    clickSound.currentTime=0;
+    clickSound.play().catch(()=>{});
+  }
+});
+
+function playAndGo(url){
+  clickSound.currentTime=0;
+  clickSound.play().catch(()=>{});
+  setTimeout(()=>{ window.location.href=url; },150);
+}
+
+function isGibberishCompany(text, fieldName){
+  const cleaned=text.trim().toLowerCase();
+  if(cleaned.length<10) return fieldName+' is too short to be valid.';
+  if(/(.)\1{5,}/.test(cleaned)) return fieldName+' looks like gibberish.';
+  if(!/[aeiou]/.test(cleaned)) return fieldName+' doesn\'t look like real text.';
+  return null;
+}
+
+function validateInputs(title, company, description){
+  function isGibberish(text, fieldName){
+    const cleaned=text.trim().toLowerCase();
+    if(cleaned.length<5) return fieldName+' is too short to be valid.';
+    if(/(.)\1{4,}/.test(cleaned)) return fieldName+' looks like gibberish — please enter real details.';
+    const unique=new Set(cleaned.replace(/\s/g,'')).size;
+    const total=cleaned.replace(/\s/g,'').length;
+    if(unique/total<0.15) return fieldName+' doesn\'t look like real text.';
+    if(!/[aeiou]/.test(cleaned)) return fieldName+' doesn\'t look like a real word.';
+    const words=cleaned.split(/\s+/).filter(w=>w.length>0);
+    if(words.length<2) return fieldName+' is too short — please add more detail.';
+    for(let word of words){
+      if(word.length>3&&/^(.)\1+$/.test(word)) return fieldName+' contains invalid text.';
+    }
+    return null;
+  }
+return isGibberish(title,'Job Title')||isGibberishCompany(company,'Company Profile')||isGibberishCompany(description,'Job Description')||null;}
+
+async function runCheck(){
+  const title=document.getElementById('title').value;
+  const company=document.getElementById('company').value;
+  const description=document.getElementById('description').value;
+  const requirements=document.getElementById('requirements').value;
+  const errorMsg=document.getElementById('error-msg');
+  const btn=document.getElementById('check-btn');
+
+  if(!title||!company||!description){
+    errorMsg.style.display='block';
+    errorMsg.textContent='Please fill in Job Title, Company Profile and Job Description.';
+    return;
+  }
+
+  const validationError=validateInputs(title,company,description);
+  if(validationError){
+    errorMsg.style.display='block';
+    errorMsg.textContent=validationError;
+    return;
+  }
+
+  errorMsg.style.display='none';
+  btn.textContent='SCANNING...';
+  btn.classList.add('scanning');
+  btn.disabled=true;
+
+  try{
+    const res=await fetch('/predict',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({title,company,description,requirements})
+    });
+    const data=await res.json();
+    const isFake=data.prediction===1;
+    const overlay=document.getElementById('result-overlay');
+
+    document.getElementById('overlay-score').textContent=data.fake_score+'%';
+    document.getElementById('overlay-verdict').textContent=isFake
+      ?'High risk — this internship is likely fraudulent.'
+      :'Low risk — this internship appears legitimate.';
+
+    const flagsWrap=document.getElementById('overlay-flags');
+    flagsWrap.innerHTML='';
+    if(data.red_flags.length>0){
+      data.red_flags.forEach(f=>{
+        const pill=document.createElement('span');
+        pill.className='flag-pill';
+        pill.textContent=f;
+        flagsWrap.appendChild(pill);
+      });
+    } else {
+      flagsWrap.innerHTML='<span class="clean-pill">No obvious red flags found</span>';
+    }
+
+    overlay.className='result-overlay '+(isFake?'fake':'real');
+    document.body.style.overflow='hidden';
+    requestAnimationFrame(()=>{
+      requestAnimationFrame(()=>{ overlay.classList.add('show'); });
+    });
+
+  }catch(e){ alert('Error. Make sure Flask is running.'); }
+
+  btn.textContent='CHECK';
+  btn.classList.remove('scanning');
+  btn.disabled=false;
+}
+
+function closeResult(){
+  const overlay=document.getElementById('result-overlay');
+  overlay.classList.remove('show');
+  document.body.style.overflow='';
+  document.getElementById('title').value='';
+  document.getElementById('company').value='';
+  document.getElementById('description').value='';
+  document.getElementById('requirements').value='';
+  document.getElementById('error-msg').style.display='none';
+}
+</script>
+</body>
+</html>

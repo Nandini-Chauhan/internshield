@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>InternShield</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Bebas+Neue&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{height:100%;width:100%;overflow:hidden;background:#0E0E0E;}
+
+.stage{
+  position:fixed;inset:0;
+  display:flex;align-items:center;justify-content:center;
+  flex-direction:column;
+  z-index:5;
+}
+
+.magnifier{
+  display:flex;flex-direction:column;align-items:center;
+  opacity:0;
+  animation:magAppear 1.2s ease forwards;
+  animation-delay:0.1s;
+}
+
+.mag-circle{
+  width:130px;height:130px;
+  border:5px solid #fff;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  position:relative;overflow:hidden;
+}
+
+.mag-lens{
+  width:75px;height:75px;border-radius:50%;
+  background:rgba(255,255,255,0.04);
+  border:2px solid rgba(255,255,255,0.15);
+}
+
+.mag-shine{
+  width:20px;height:20px;border-radius:50%;
+  background:rgba(255,255,255,0.12);
+  position:absolute;top:20px;left:20px;
+}
+
+.mag-scan{
+  position:absolute;left:0;
+  width:100%;height:3px;
+  background:linear-gradient(90deg,transparent,rgba(200,16,46,0.9),transparent);
+  animation:scan 1.4s ease-in-out 1.2s infinite;
+}
+
+.mag-handle{
+  width:5px;height:60px;
+  background:#fff;border-radius:10px;
+  transform:rotate(45deg) translateX(24px) translateY(-14px);
+  margin-top:-14px;
+}
+
+@keyframes scan{
+  0%{top:5%;opacity:0;}
+  15%{opacity:1;}
+  85%{opacity:1;}
+  100%{top:95%;opacity:0;}
+}
+
+@keyframes magAppear{
+  0%{opacity:0;transform:scale(0.3);}
+  60%{transform:scale(1.1);}
+  100%{opacity:1;transform:scale(1);}
+}
+
+.intro-label{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:0.7rem;letter-spacing:6px;text-transform:uppercase;
+  color:rgba(255,255,255,0.3);margin-top:2.5rem;
+  opacity:0;animation:fadeUp 1s ease forwards;animation-delay:1.2s;
+}
+
+.intro-title{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:4rem;letter-spacing:5px;
+  color:#fff;margin-top:0.4rem;
+  opacity:0;animation:fadeUp 1s ease forwards;animation-delay:1.6s;
+}
+@keyframes fadeUp{
+  from{opacity:0;transform:translateY(12px);}
+  to{opacity:1;transform:translateY(0);}
+}
+
+/* CURTAINS — start closed, open outward */
+.curtain-left{
+  position:fixed;top:0;left:0;
+  width:50%;height:100%;
+  background:#0E0E0E;
+  z-index:15;
+  transform:translateX(0);
+  transition:transform 1.6s cubic-bezier(.77,0,.18,1);
+}
+.curtain-right{
+  position:fixed;top:0;right:0;
+  width:50%;height:100%;
+  background:#0E0E0E;
+  z-index:15;
+  transform:translateX(0);
+  transition:transform 1.6s cubic-bezier(.77,0,.18,1);
+}
+.curtain-left.open{transform:translateX(-100%);}
+.curtain-right.open{transform:translateX(100%);}
+</style>
+</head>
+<body>
+
+<div class="stage">
+  <div class="magnifier">
+    <div class="mag-circle">
+      <div class="mag-lens"></div>
+      <div class="mag-shine"></div>
+      <div class="mag-scan"></div>
+    </div>
+    <div class="mag-handle"></div>
+  </div>
+  <div class="intro-label">Fraud Detection Engine</div>
+  <div class="intro-title">INTERNSHIELD</div>
+</div>
+
+<div class="curtain-left" id="cl"></div>
+<div class="curtain-right" id="cr"></div>
+
+<script>
+  setTimeout(()=>{
+    document.getElementById('cl').classList.add('open');
+    document.getElementById('cr').classList.add('open');
+    setTimeout(()=>{
+      window.location.href='/home';
+    },800);
+  },2800);
+</script>
+</body>
+</html>
