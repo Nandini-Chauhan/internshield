@@ -26,6 +26,16 @@ Paste any internship or job posting — title, company profile, description, req
 
 ## How It Works
 
+User pastes job posting
+↓
+Text preprocessing + TF-IDF vectorization (5,000 features)
+↓
+Logistic Regression classifier (class_weight='balanced')
+↓
+Risk score + red flag detection
+↓
+Full-page result overlay
+
 ---
 
 ## Model Performance
@@ -64,6 +74,17 @@ Paste any internship or job posting — title, company profile, description, req
 ---
 
 ## Project Structure
+internshield/
+├── app.py                  # Flask backend + prediction API
+├── model.pkl               # Trained ML model
+├── vectorizer.pkl          # TF-IDF vectorizer
+├── templates/
+│   ├── index.html          # Home page
+│   ├── analyze.html        # Analysis page
+│   └── intro.html          # Intro animation
+├── static/                 # Audio assets
+├── requirements.txt
+└── Procfile
 
 ---
 
